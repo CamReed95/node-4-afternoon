@@ -1,39 +1,35 @@
-require("dotenv").config();
-const express = require("express");
-const session = require("express-session");
-const checkForSession = require("./middlewares/checkForSession");
-const swagController = require("./controllers/swagController");
-const authController = require("./controllers/authController");
-const cartController = require("./controllers/cartController");
-const searchController = require("./controllers/searchController");
-
-const app = express();
-let { SERVER_PORT, SESSION_SECRET } = process.env;
-
-
-app.use(express.json());
+require('dotenv').config()
+const express = require('express')
+const session = require('express-session')
+const app = express()
+const {SERVER_PORT, SESSION_KEY} = process.env
+const {checkUser} = require('./middleware/checkForSessions')
+const {read} = require('./controllers/swagController')
+const {login, register, signout, getUser} = require('./controllers/authController')
+const {add, deleteItem, checkout} = require('./controllers/cartController')
+const {search} = require('./controllers/searchController')
+app.use(express.json())
 app.use(
-  session({
-    secret: SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true
-  })
-);
-app.use(checkForSession);
+    session({
+        secret: SESSION_KEY,
+        resave: false,
+        saveUninitialized: true
+    })
+)
+app.use(checkUser)
 app.use(express.static(`${__dirname}/../build`));
 
-app.post("/api/register", authController.register);
-app.post("/api/login", authController.login);
-app.post("/api/signout", authController.signout);
-app.get("/api/user", authController.getUser);
-
-app.get("/api/swag", swagController.read);
-
-app.post("/api/cart/checkout", cartController.checkout);
-app.post("/api/cart/:id", cartController.add);
-app.delete("/api/cart/:id", cartController.delete);
-app.get("/api/search", searchController.search);
-
 app.listen(SERVER_PORT, () => {
-  console.log(`Server listening on port ${SERVER_PORT}.`);
-});
+    console.log(`server listening port ${SERVER_PORT}`)
+})
+
+
+app.get('/api/swag', read)
+app.post('/api/login', login)
+app.post('/api/register', register)
+app.post('/api/signout', signout)
+app.get('/api/user', getUser)
+app.post('/api/cart/checkout', checkout)
+app.post('/api/cart/:id', add)
+app.delete('/api/cart/:id', deleteItem)
+app.get('/api/search', search)
